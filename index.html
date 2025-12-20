@@ -3,142 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Navigation Map</title>
+<title>Navigation Map – Full Features</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
-
-body{
- background:#eaeaea;
- transition:.4s;
-}
+body{background:#eaeaea;transition:.4s}
 body.dark{background:#111;color:#fff}
-
-#map{
- height:100vh;
- width:100%;
- padding-bottom:120px; /* 🔒 prevents footer/tools overlap */
-}
-
-.glass{
- background:rgba(255,255,255,.25);
- backdrop-filter:blur(12px);
- border-radius:20px;
- z-index:2000;
-}
+#map{height:100vh;width:100%;padding-bottom:120px;}
+.glass{background:rgba(255,255,255,.25);backdrop-filter:blur(12px);border-radius:20px;z-index:2000;}
 body.dark .glass{background:rgba(0,0,0,.45)}
-
-.info{
- position:absolute;
- top:10px;
- left:50%;
- transform:translateX(-50%);
- padding:8px 14px;
- font-size:13px;
-}
-
-#speedBox{
- position:absolute;
- top:46px;
- left:50%;
- transform:translateX(-50%);
- padding:6px 12px;
- font-size:13px;
-}
-
-/* ===== CONTROLS BAR ===== */
-.controls{
- position:absolute;
- bottom:56px;               /* ✅ FIXED SPACING */
- left:50%;
- transform:translateX(-50%);
- display:flex;
- gap:6px;
- padding:6px;
- max-width:95%;
- overflow-x:auto;
- scroll-behavior:smooth;
- z-index:3000;
-}
-
-.tool{
- display:flex;
- align-items:center;
- gap:6px;
- padding:10px 14px;
- border-radius:22px;
- white-space:nowrap;
- font-size:14px;
- cursor:pointer;
- flex-shrink:0;
- background:rgba(255,255,255,.25);
- backdrop-filter:blur(12px);
-}
+.info{position:absolute;top:10px;left:50%;transform:translateX(-50%);padding:8px 14px;font-size:13px;}
+#speedBox{position:absolute;top:46px;left:50%;transform:translateX(-50%);padding:6px 12px;font-size:13px;}
+.controls{position:absolute;bottom:56px;left:50%;transform:translateX(-50%);display:flex;gap:6px;padding:6px;max-width:95%;overflow-x:auto;scroll-behavior:smooth;z-index:3000;}
+.tool{display:flex;align-items:center;gap:6px;padding:10px 14px;border-radius:22px;white-space:nowrap;font-size:14px;cursor:pointer;flex-shrink:0;background:rgba(255,255,255,.25);backdrop-filter:blur(12px);}
 body.dark .tool{background:rgba(0,0,0,.45)}
-
-#stylePanel{
- position:absolute;
- bottom:120px;
- left:50%;
- transform:translateX(-50%);
- padding:10px;
- display:none;
- z-index:4000;
- min-width:220px;
-}
-#stylePanel div{
- padding:10px;
- margin:6px 0;
- border-radius:14px;
- text-align:center;
- cursor:pointer;
-}
-
-#compass{
- position:absolute;
- right:10px;
- bottom:130px;
- width:54px;
- height:54px;
- border-radius:50%;
- display:flex;
- align-items:center;
- justify-content:center;
- font-size:20px;
- z-index:3000;
-}
-
-footer{
- position:absolute;
- bottom:0;
- width:100%;
- text-align:center;
- padding:8px 0;
- font-size:12px;
- pointer-events:none;
-}
-
-/* ===== MOBILE SAFETY ===== */
-@media (max-width:480px){
- .controls{bottom:64px}
- .tool{padding:6px 10px;font-size:12px}
-}
+#stylePanel{position:absolute;bottom:120px;left:50%;transform:translateX(-50%);padding:10px;display:none;z-index:4000;min-width:220px;}
+#stylePanel div{padding:10px;margin:6px 0;border-radius:14px;text-align:center;cursor:pointer;}
+#compass{position:absolute;right:10px;bottom:130px;width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;z-index:3000;}
+footer{position:absolute;bottom:0;width:100%;text-align:center;padding:8px 0;font-size:12px;pointer-events:none;}
+@media (max-width:480px){.controls{bottom:64px}.tool{padding:6px 10px;font-size:12px}}
 </style>
 </head>
-
 <body>
 
 <div id="map"></div>
 
-<div class="info glass">Touch screen to enable GPS</div>
+<div class="info glass">Touch/click screen to enable GPS</div>
 <div class="info glass" id="speedBox">Speed: 0 km/h</div>
 
-<div id="compass" class="glass">
- <i class="fas fa-location-arrow"></i>
-</div>
+<div id="compass" class="glass"><i class="fas fa-location-arrow"></i></div>
 
 <div id="stylePanel" class="glass">
  <div data-style="standard">🗺 Standard</div>
@@ -150,11 +46,14 @@ footer{
 <div class="controls glass">
  <div class="tool" id="addMarker"><i class="fa fa-map-marker-alt"></i>Add Marker</div>
  <div class="tool" id="mapStyle"><i class="fa fa-layer-group"></i>Style</div>
- <div class="tool" id="unit"><i class="fa fa-ruler"></i>KM</div>
- <div class="tool" id="mode"><i class="fa fa-draw-polygon"></i>Measure</div>
- <div class="tool" id="remove"><i class="fa fa-trash"></i>Remove</div>
- <div class="tool" id="clearAll"><i class="fa fa-xmark"></i>Clear</div>
- <div class="tool" id="dark"><i class="fa fa-moon"></i></div>
+ <div class="tool" id="unit">KM</div>
+ <div class="tool" id="mode">Measure</div>
+ <div class="tool" id="remove">Remove</div>
+ <div class="tool" id="clearAll">Clear</div>
+ <div class="tool" id="save">Save</div>
+ <div class="tool" id="load">Load</div>
+ <div class="tool" id="dark">Dark</div>
+ <div class="tool" id="labels">Labels</div>
 </div>
 
 <footer class="glass">© Mamik Roy 2025. All Rights Reserved.</footer>
@@ -162,85 +61,120 @@ footer{
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
-/* ===== MAP & LAYERS ===== */
+// ===== MAP INIT =====
 const map = L.map("map").setView([0,0],2);
 
+// ===== TILE LAYERS =====
 const layers={
  standard:L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}),
  satellite:L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19}),
+ satelliteLabels:L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19}),
  terrain:L.tileLayer("https://tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:17}),
  physical:L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",{maxZoom:19})
 };
 layers.standard.addTo(map);
+let labelsOn=true;
 
-/* ===== GPS ===== */
-navigator.geolocation.watchPosition(p=>{
- const {latitude,longitude,speed}=p.coords;
- if(!window.user){
-  window.user=L.circleMarker([latitude,longitude],{radius:7,color:"#007bff"}).addTo(map);
+// ===== GPS =====
+let userMarker=null;
+navigator.geolocation.watchPosition(pos=>{
+ const {latitude,longitude,speed}=pos.coords;
+ if(!userMarker){
+  userMarker=L.circleMarker([latitude,longitude],{radius:7,color:"#007bff"}).addTo(map);
   map.setView([latitude,longitude],17);
- }else user.setLatLng([latitude,longitude]);
+ }else userMarker.setLatLng([latitude,longitude]);
  document.getElementById("speedBox").innerText=`Speed: ${(speed||0*3.6).toFixed(1)} km/h`;
 },{},{enableHighAccuracy:true});
 
-/* ===== COMPASS ===== */
-window.addEventListener("deviceorientationabsolute",e=>{
- if(e.alpha!=null)
-  document.getElementById("compass").style.transform=`rotate(${360-e.alpha}deg)`;
-});
+// ===== COMPASS =====
+if(window.DeviceOrientationEvent){
+ window.addEventListener("deviceorientationabsolute",e=>{
+   if(e.alpha!=null)
+    document.getElementById("compass").style.transform=`rotate(${360-e.alpha}deg)`;
+ });
+}
 
-/* ===== MARKERS ===== */
-let markers=[],poly=null,mode=0,unit="km";
+// ===== MARKERS & MEASURE =====
+let markers=[],poly=null,unit="km",mode=0;
 
 function addMarker(latlng){
  const m=L.marker(latlng,{draggable:true}).addTo(map);
- m.on("drag",update);
+ m.on("drag",updateMeasure);
  markers.push(m);
- update();
+ updateMeasure();
 }
-
+function updateMeasure(){
+ if(poly) map.removeLayer(poly);
+ if(markers.length>1){
+  const pts=markers.map(m=>m.getLatLng());
+  poly=L.polyline(pts,{color:"orange"}).addTo(map);
+  // distance
+  let total=0;
+  for(let i=0;i<pts.length-1;i++){
+   total+=map.distance(pts[i],pts[i+1]);
+  }
+  const disp=(unit==="km")?(total/1000).toFixed(2)+" km":(total/1609.34).toFixed(2)+" mi";
+  document.getElementById("speedBox").innerText="Distance: "+disp;
+ }
+}
 map.on("click",e=>addMarker(e.latlng));
 document.getElementById("addMarker").onclick=()=>addMarker(map.getCenter());
 
-function update(){
- if(poly) map.removeLayer(poly);
- if(markers.length>1)
-  poly=L.polyline(markers.map(m=>m.getLatLng()),{color:"orange"}).addTo(map);
-}
-
-/* ===== CONTROLS ===== */
-document.getElementById("mapStyle").onclick=()=>{
- const p=document.getElementById("stylePanel");
- p.style.display=p.style.display==="block"?"none":"block";
-};
-document.querySelectorAll("#stylePanel div").forEach(d=>{
+// ===== CONTROLS =====
+const stylePanel=document.getElementById("stylePanel");
+document.getElementById("mapStyle").onclick=()=>stylePanel.style.display=(stylePanel.style.display==="block")?"none":"block";
+stylePanel.querySelectorAll("div").forEach(d=>{
  d.onclick=()=>{
   Object.values(layers).forEach(l=>map.removeLayer(l));
   layers[d.dataset.style].addTo(map);
+  if(d.dataset.style==="satellite" && labelsOn) layers.satelliteLabels.addTo(map);
   stylePanel.style.display="none";
  };
 });
 
 document.getElementById("unit").onclick=()=>{
- unit=unit==="km"?"mi":"km";
- unitBtn.innerText=unit.toUpperCase();
+ unit=(unit==="km")?"mi":"km";
+ document.getElementById("unit").innerText=unit.toUpperCase();
+ updateMeasure();
 };
 
 document.getElementById("dark").onclick=()=>document.body.classList.toggle("dark");
 
+// REMOVE LAST MARKER
 document.getElementById("remove").onclick=()=>{
  if(markers.length){
   map.removeLayer(markers.pop());
-  update();
+  updateMeasure();
  }
 };
 
+// CLEAR ALL
 document.getElementById("clearAll").onclick=()=>{
  markers.forEach(m=>map.removeLayer(m));
+ markers=[]; if(poly) map.removeLayer(poly);
+ document.getElementById("speedBox").innerText="Distance: 0 "+unit;
+};
+
+// SAVE / LOAD
+document.getElementById("save").onclick=()=>{
+ const data={unit,markers:markers.map(m=>m.getLatLng())};
+ localStorage.setItem("navMapData",JSON.stringify(data));
+};
+document.getElementById("load").onclick=()=>{
+ const data=JSON.parse(localStorage.getItem("navMapData"));
+ if(!data) return;
+ markers.forEach(m=>map.removeLayer(m));
  markers=[];
- if(poly) map.removeLayer(poly);
+ data.markers.forEach(p=>addMarker(p));
+ unit=data.unit;
+ document.getElementById("unit").innerText=unit.toUpperCase();
+};
+
+// TOGGLE LABELS OVERLAY
+document.getElementById("labels").onclick=()=>{
+ if(map.hasLayer(layers.satelliteLabels)){map.removeLayer(layers.satelliteLabels);labelsOn=false;}
+ else if(map.hasLayer(layers.satellite)){layers.satelliteLabels.addTo(map);labelsOn=true;}
 };
 </script>
-
 </body>
 </html>
