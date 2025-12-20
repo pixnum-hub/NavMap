@@ -59,7 +59,7 @@ body.dark .glass{background:rgba(0,0,0,.45)}
   z-index:3000;
 }
 
-/* DISTANCE (FIXED & ALWAYS VISIBLE) */
+/* DISTANCE */
 #distanceBox{
   position:fixed;
   top:68px;
@@ -75,10 +75,10 @@ body.dark .glass{background:rgba(0,0,0,.45)}
 /* LOCATION DETAILS */
 #locationBox{
   position:fixed;
-  bottom:150px;
+  bottom:190px;   /* ABOVE tools */
   left:50%;
   transform:translateX(-50%);
-  width:90%;
+  width:92%;
   max-width:420px;
   padding:10px;
   font-size:13px;
@@ -89,7 +89,7 @@ body.dark .glass{background:rgba(0,0,0,.45)}
 #compass{
   position:fixed;
   right:14px;
-  bottom:220px;
+  bottom:280px;
   width:46px;
   height:46px;
   border-radius:50%;
@@ -103,13 +103,13 @@ body.dark .glass{background:rgba(0,0,0,.45)}
 /* TOOLBAR */
 #toolbar{
   position:fixed;
-  bottom:50px;
+  bottom:70px;    /* lowest UI */
   left:50%;
   transform:translateX(-50%);
   width:92%;
   max-width:420px;
   padding:10px;
-  z-index:3000;
+  z-index:4000;
 }
 
 #tools{
@@ -137,7 +137,7 @@ body.dark #tools button{
 #fab{
   position:fixed;
   right:16px;
-  bottom:280px;
+  bottom:340px;
   width:54px;
   height:54px;
   border-radius:50%;
@@ -159,6 +159,13 @@ footer{
   padding:8px 0;
   font-size:12px;
   z-index:2000;
+}
+
+/* SMALL SCREEN SAFETY */
+@media (max-height:640px){
+  #locationBox{bottom:240px;font-size:12px}
+  #compass{bottom:320px}
+  #fab{bottom:380px}
 }
 </style>
 </head>
@@ -233,62 +240,45 @@ function updateDistance(){
         .distanceTo(markers[i+1].getLatLng());
     }
   }
+  document.getElementById("distanceValue").innerText=
+    unit==="km"?(total/1000).toFixed(2)+" km":(total/1609.34).toFixed(2)+" mi";
 
-  const text = unit==="km"
-    ? (total/1000).toFixed(2)+" km"
-    : (total/1609.34).toFixed(2)+" mi";
-
-  document.getElementById("distanceValue").innerText=text;
-
-  if(line){map.removeLayer(line); line=null;}
+  if(line){map.removeLayer(line);line=null;}
   if(markers.length>1){
     line=L.polyline(markers.map(m=>m.getLatLng()),
       {color:"orange",weight:4}).addTo(map);
   }
 }
 
-function addMarker(latlng){
-  const m=L.marker(latlng,{draggable:true}).addTo(map);
+function addMarker(ll){
+  const m=L.marker(ll,{draggable:true}).addTo(map);
   m.on("drag",updateDistance);
   markers.push(m);
   updateDistance();
 }
 map.on("click",e=>addMarker(e.latlng));
 function addCenter(){addMarker(map.getCenter());}
-function removeLast(){
-  if(markers.length){
-    map.removeLayer(markers.pop());
-    updateDistance();
-  }
-}
-function clearAll(){
-  markers.forEach(m=>map.removeLayer(m));
-  markers=[];
-  if(line){map.removeLayer(line);line=null;}
-  updateDistance();
-}
-function toggleUnit(){unit=unit==="km"?"mi":"km"; updateDistance();}
+function removeLast(){if(markers.length){map.removeLayer(markers.pop());updateDistance();}}
+function clearAll(){markers.forEach(m=>map.removeLayer(m));markers=[];if(line){map.removeLayer(line);line=null;}updateDistance();}
+function toggleUnit(){unit=unit==="km"?"mi":"km";updateDistance();}
 
 /* USER LOCATION */
 let userMarker=null;
 const locBox=document.getElementById("locationBox");
-
 if(navigator.geolocation){
   navigator.geolocation.watchPosition(p=>{
     const c=p.coords;
-    const lat=c.latitude, lng=c.longitude;
     locBox.innerHTML=`<b>Location Details</b><br>
-      Lat: ${lat.toFixed(6)}<br>
-      Lng: ${lng.toFixed(6)}<br>
+      Lat: ${c.latitude.toFixed(6)}<br>
+      Lng: ${c.longitude.toFixed(6)}<br>
       Accuracy: ${c.accuracy||"N/A"} m<br>
       Altitude: ${c.altitude||"N/A"}<br>
-      Speed: ${c.speed? (c.speed*3.6).toFixed(1)+" km/h":"N/A"}<br>
+      Speed: ${c.speed?(c.speed*3.6).toFixed(1)+" km/h":"N/A"}<br>
       Updated: ${new Date().toLocaleTimeString()}`;
-
     if(!userMarker){
-      userMarker=L.marker([lat,lng]).addTo(map);
-      map.setView([lat,lng],16);
-    }else userMarker.setLatLng([lat,lng]);
+      userMarker=L.marker([c.latitude,c.longitude]).addTo(map);
+      map.setView([c.latitude,c.longitude],16);
+    }else userMarker.setLatLng([c.latitude,c.longitude]);
   },()=>{}, {enableHighAccuracy:true});
 }
 
