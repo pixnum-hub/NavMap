@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NavMap - Navigation Map</title>
+<title>NavMap- Navigation Map</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css">
@@ -40,17 +40,23 @@ body.dark .glass{background:rgba(0,0,0,.45)}
 }
 
 .controls{
- position:absolute;bottom:10px;left:50%;
+ position:absolute;
+ bottom:10px;
+ left:50%;
  transform:translateX(-50%);
- display:flex;gap:6px;
+ display:flex;
+ gap:6px;
  padding:6px;
  max-width:95%;
  overflow-x:auto;
+ scroll-behavior:smooth;
  z-index:2000;
 }
 
 .tool{
- display:flex;align-items:center;gap:6px;
+ display:flex;
+ align-items:center;
+ gap:6px;
  padding:10px 14px;
  border-radius:22px;
  white-space:nowrap;
@@ -58,6 +64,12 @@ body.dark .glass{background:rgba(0,0,0,.45)}
  cursor:pointer;
  flex-shrink:0;
  pointer-events:auto;
+ background:rgba(255,255,255,0.25);
+ backdrop-filter:blur(12px);
+}
+
+body.dark .tool{
+ background:rgba(0,0,0,0.45);
 }
 
 #stylePanel{
@@ -101,6 +113,9 @@ footer{
  #info{bottom:140px;top:auto;}
  #speedBox{bottom:110px;top:auto;}
 }
+@media (max-width:400px){
+ .tool{padding:6px 10px;font-size:12px;}
+}
 </style>
 </head>
 <body>
@@ -122,15 +137,16 @@ footer{
 </div>
 
 <div class="controls glass">
- <div class="tool" id="mapStyle"><i class="fas fa-map"></i>Style</div>
- <div class="tool" id="unit"><i class="fas fa-ruler"></i>KM</div>
- <div class="tool" id="mode"><i class="fas fa-layer-group"></i>Measure</div>
- <div class="tool" id="save"><i class="fas fa-save"></i>Save</div>
- <div class="tool" id="load"><i class="fas fa-folder-open"></i>Load</div>
- <div class="tool" id="remove"><i class="fas fa-trash-alt"></i>Remove</div>
- <div class="tool" id="clearAll"><i class="fas fa-times-circle"></i>Clear All</div>
- <div class="tool" id="dark"><i class="fas fa-moon"></i></div>
- <div class="tool" id="toggleLabels"><i class="fas fa-tags"></i>Labels</div>
+  <div class="tool" id="addMarker"><i class="fas fa-map-marker-alt"></i> Add Marker</div>
+  <div class="tool" id="mapStyle"><i class="fas fa-map"></i> Style</div>
+  <div class="tool" id="unit"><i class="fas fa-ruler"></i> KM</div>
+  <div class="tool" id="mode"><i class="fas fa-layer-group"></i> Measure</div>
+  <div class="tool" id="save"><i class="fas fa-save"></i> Save</div>
+  <div class="tool" id="load"><i class="fas fa-folder-open"></i> Load</div>
+  <div class="tool" id="remove"><i class="fas fa-trash-alt"></i> Remove</div>
+  <div class="tool" id="clearAll"><i class="fas fa-times-circle"></i> Clear All</div>
+  <div class="tool" id="dark"><i class="fas fa-moon"></i></div>
+  <div class="tool" id="toggleLabels"><i class="fas fa-tags"></i> Labels</div>
 </div>
 
 <footer class="glass">© Mamik Roy 2025. All Rights Reserved.</footer>
@@ -192,33 +208,18 @@ if(window.DeviceOrientationEvent){
 let markers=[], poly=null, areaPoly=null;
 let unit="km", mode=0;
 
-// ===== ROBUST LONG-PRESS MARKER =====
-let pressTimer = null;
-let touchMoved = false;
-const longPressDuration = 600;
+// ===== MANUAL MARKER ADDITION =====
+document.getElementById("addMarker").onclick = () => {
+    const center = map.getCenter(); // Add marker at map center
+    addMarker(center);
+};
 
 function addMarker(latlng){
- const m = L.marker(latlng, { draggable:true }).addTo(map);
- m.on("drag", update);
- markers.push(m);
- update();
+    const m = L.marker(latlng, { draggable:true }).addTo(map);
+    m.on("drag", update);
+    markers.push(m);
+    update();
 }
-
-function startPress(e){
- if(e.originalEvent.target.closest('.tool, #stylePanel')) return;
- touchMoved=false;
- pressTimer = setTimeout(()=> addMarker(e.latlng), longPressDuration);
-}
-function endPress(){ clearTimeout(pressTimer); }
-function movePress(){ touchMoved=true; clearTimeout(pressTimer); }
-
-map.on('touchstart', startPress);
-map.on('touchend', endPress);
-map.on('touchmove', movePress);
-
-map.on('mousedown', startPress);
-map.on('mouseup', endPress);
-map.on('mousemove', movePress);
 
 function update(){
  const pts = markers.map(m=>m.getLatLng());
