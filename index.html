@@ -3,178 +3,202 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Navigation Map – Full Features</title>
+<title>Navigation Map</title>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
-body{background:#eaeaea;transition:.4s}
+body{background:#e8e8e8}
 body.dark{background:#111;color:#fff}
-#map{height:100vh;width:100%;padding-bottom:120px;}
-.glass{background:rgba(255,255,255,.25);backdrop-filter:blur(12px);border-radius:20px;z-index:2000;}
+#map{height:100vh;width:100vw}
+
+.glass{
+  background:rgba(255,255,255,.32);
+  backdrop-filter:blur(14px);
+  border-radius:18px;
+}
 body.dark .glass{background:rgba(0,0,0,.45)}
-.info{position:absolute;top:10px;left:50%;transform:translateX(-50%);padding:8px 14px;font-size:13px;}
-#speedBox{position:absolute;top:46px;left:50%;transform:translateX(-50%);padding:6px 12px;font-size:13px;}
-.controls{position:absolute;bottom:56px;left:50%;transform:translateX(-50%);display:flex;gap:6px;padding:6px;max-width:95%;overflow-x:auto;scroll-behavior:smooth;z-index:3000;}
-.tool{display:flex;align-items:center;gap:6px;padding:10px 14px;border-radius:22px;white-space:nowrap;font-size:14px;cursor:pointer;flex-shrink:0;background:rgba(255,255,255,.25);backdrop-filter:blur(12px);}
-body.dark .tool{background:rgba(0,0,0,.45)}
-#stylePanel{position:absolute;bottom:120px;left:50%;transform:translateX(-50%);padding:10px;display:none;z-index:4000;min-width:220px;}
-#stylePanel div{padding:10px;margin:6px 0;border-radius:14px;text-align:center;cursor:pointer;}
-#compass{position:absolute;right:10px;bottom:130px;width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;z-index:3000;}
-footer{position:absolute;bottom:0;width:100%;text-align:center;padding:8px 0;font-size:12px;pointer-events:none;}
-@media (max-width:480px){.controls{bottom:64px}.tool{padding:6px 10px;font-size:12px}}
+
+.top, .bottom{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  gap:8px;
+  padding:8px;
+  flex-wrap:wrap;
+  justify-content:center;
+  z-index:1000;
+}
+.top{top:12px}
+.bottom{bottom:80px}
+
+.btn{
+  padding:10px 14px;
+  border-radius:22px;
+  cursor:pointer;
+  font-size:14px;
+}
+
+.layers{
+  position:absolute;
+  top:12px;
+  left:12px;
+  padding:8px;
+  z-index:1000;
+}
+.layers div{
+  padding:6px 10px;
+  margin:4px 0;
+  border-radius:10px;
+  cursor:pointer;
+  text-align:center;
+}
+
+.dark-btn{
+  position:absolute;
+  top:12px;
+  right:12px;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  cursor:pointer;
+  z-index:1001;
+}
+
+.info{
+  position:absolute;
+  bottom:150px;
+  left:50%;
+  transform:translateX(-50%);
+  padding:6px 14px;
+  z-index:1000;
+}
+
+#compass{
+  position:absolute;
+  right:12px;
+  bottom:150px;
+  width:46px;
+  height:46px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  z-index:1000;
+}
+
+footer{
+  position:absolute;
+  bottom:0;
+  width:100%;
+  text-align:center;
+  padding:8px 0;
+  font-size:12px;
+}
 </style>
 </head>
+
 <body>
 
 <div id="map"></div>
 
-<div class="info glass">Touch/click screen to enable GPS</div>
-<div class="info glass" id="speedBox">Speed: 0 km/h</div>
-
-<div id="compass" class="glass"><i class="fas fa-location-arrow"></i></div>
-
-<div id="stylePanel" class="glass">
- <div data-style="standard">🗺 Standard</div>
- <div data-style="satellite">🛰 Satellite</div>
- <div data-style="terrain">⛰ Terrain</div>
- <div data-style="physical">🌍 Physical</div>
+<div class="layers glass">
+  <div onclick="switchLayer('std')">Standard</div>
+  <div onclick="switchLayer('ter')">Terrain</div>
+  <div onclick="switchLayer('phy')">Physical</div>
 </div>
 
-<div class="controls glass">
- <div class="tool" id="addMarker"><i class="fa fa-map-marker-alt"></i>Add Marker</div>
- <div class="tool" id="mapStyle"><i class="fa fa-layer-group"></i>Style</div>
- <div class="tool" id="unit">KM</div>
- <div class="tool" id="mode">Measure</div>
- <div class="tool" id="remove">Remove</div>
- <div class="tool" id="clearAll">Clear</div>
- <div class="tool" id="save">Save</div>
- <div class="tool" id="load">Load</div>
- <div class="tool" id="dark">Dark</div>
- <div class="tool" id="labels">Labels</div>
+<div class="top glass">
+  <div class="btn" onclick="addCenter()">Add Marker</div>
+  <div class="btn" onclick="toggleUnit()">KM / MI</div>
+</div>
+
+<div class="dark-btn glass" onclick="toggleDark()">🌙</div>
+
+<div id="distance" class="info glass">Distance: 0 km</div>
+
+<div id="compass" class="glass">🧭</div>
+
+<div class="bottom glass">
+  <div class="btn" onclick="removeLast()">Remove</div>
+  <div class="btn" onclick="clearAll()">Clear</div>
 </div>
 
 <footer class="glass">© Mamik Roy 2025. All Rights Reserved.</footer>
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-// ===== MAP INIT =====
-const map = L.map("map").setView([0,0],2);
-
-// ===== TILE LAYERS =====
-const layers={
- standard:L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}),
- satellite:L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19}),
- satelliteLabels:L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19}),
- terrain:L.tileLayer("https://tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:17}),
- physical:L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",{maxZoom:19})
+/* MAP */
+const map=L.map("map").setView([20,0],2);
+const tiles={
+  std:L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}),
+  ter:L.tileLayer("https://tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:17}),
+  phy:L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",{maxZoom:19})
 };
-layers.standard.addTo(map);
-let labelsOn=true;
+let active=tiles.std;active.addTo(map);
+function switchLayer(k){map.removeLayer(active);active=tiles[k];active.addTo(map);}
 
-// ===== GPS =====
-let userMarker=null;
-navigator.geolocation.watchPosition(pos=>{
- const {latitude,longitude,speed}=pos.coords;
- if(!userMarker){
-  userMarker=L.circleMarker([latitude,longitude],{radius:7,color:"#007bff"}).addTo(map);
-  map.setView([latitude,longitude],17);
- }else userMarker.setLatLng([latitude,longitude]);
- document.getElementById("speedBox").innerText=`Speed: ${(speed||0*3.6).toFixed(1)} km/h`;
-},{},{enableHighAccuracy:true});
-
-// ===== COMPASS =====
-if(window.DeviceOrientationEvent){
- window.addEventListener("deviceorientationabsolute",e=>{
-   if(e.alpha!=null)
-    document.getElementById("compass").style.transform=`rotate(${360-e.alpha}deg)`;
- });
-}
-
-// ===== MARKERS & MEASURE =====
-let markers=[],poly=null,unit="km",mode=0;
-
-function addMarker(latlng){
- const m=L.marker(latlng,{draggable:true}).addTo(map);
- m.on("drag",updateMeasure);
- markers.push(m);
- updateMeasure();
-}
-function updateMeasure(){
- if(poly) map.removeLayer(poly);
- if(markers.length>1){
-  const pts=markers.map(m=>m.getLatLng());
-  poly=L.polyline(pts,{color:"orange"}).addTo(map);
-  // distance
-  let total=0;
-  for(let i=0;i<pts.length-1;i++){
-   total+=map.distance(pts[i],pts[i+1]);
-  }
-  const disp=(unit==="km")?(total/1000).toFixed(2)+" km":(total/1609.34).toFixed(2)+" mi";
-  document.getElementById("speedBox").innerText="Distance: "+disp;
- }
+/* MARKERS & DISTANCE */
+let markers=[],line=null,unit="km";
+function addMarker(ll){
+  const m=L.marker(ll,{draggable:true}).addTo(map);
+  m.on("drag",calc);
+  markers.push(m);calc();
 }
 map.on("click",e=>addMarker(e.latlng));
-document.getElementById("addMarker").onclick=()=>addMarker(map.getCenter());
+function addCenter(){addMarker(map.getCenter());}
+function removeLast(){if(markers.length){map.removeLayer(markers.pop());calc();}}
+function clearAll(){
+  markers.forEach(m=>map.removeLayer(m));
+  markers=[];if(line){map.removeLayer(line);line=null;}
+  document.getElementById("distance").innerText="Distance: 0 "+unit;
+}
+function calc(){
+  if(line){map.removeLayer(line);}
+  if(markers.length<2){document.getElementById("distance").innerText="Distance: 0 "+unit;return;}
+  const pts=markers.map(m=>m.getLatLng());
+  line=L.polyline(pts,{color:"orange"}).addTo(map);
+  let d=0;for(let i=0;i<pts.length-1;i++)d+=pts[i].distanceTo(pts[i+1]);
+  document.getElementById("distance").innerText=
+    "Distance: "+(unit==="km"?(d/1000).toFixed(2)+" km":(d/1609.34).toFixed(2)+" mi");
+}
+function toggleUnit(){unit=unit==="km"?"mi":"km";calc();}
+function toggleDark(){document.body.classList.toggle("dark");}
 
-// ===== CONTROLS =====
-const stylePanel=document.getElementById("stylePanel");
-document.getElementById("mapStyle").onclick=()=>stylePanel.style.display=(stylePanel.style.display==="block")?"none":"block";
-stylePanel.querySelectorAll("div").forEach(d=>{
- d.onclick=()=>{
-  Object.values(layers).forEach(l=>map.removeLayer(l));
-  layers[d.dataset.style].addTo(map);
-  if(d.dataset.style==="satellite" && labelsOn) layers.satelliteLabels.addTo(map);
-  stylePanel.style.display="none";
- };
+/* USER GEOLOCATION */
+let userMarker=null;
+const userIcon=L.icon({
+  iconUrl:"https://cdn-icons-png.flaticon.com/512/684/684908.png",
+  iconSize:[36,36],
+  iconAnchor:[18,36]
 });
+if(navigator.geolocation){
+  navigator.geolocation.watchPosition(p=>{
+    const {latitude,longitude}=p.coords;
+    if(!userMarker){
+      userMarker=L.marker([latitude,longitude],{icon:userIcon,zIndexOffset:1000}).addTo(map);
+      map.setView([latitude,longitude],16);
+    }else userMarker.setLatLng([latitude,longitude]);
+  },e=>console.log(e),{enableHighAccuracy:true});
+}
 
-document.getElementById("unit").onclick=()=>{
- unit=(unit==="km")?"mi":"km";
- document.getElementById("unit").innerText=unit.toUpperCase();
- updateMeasure();
-};
-
-document.getElementById("dark").onclick=()=>document.body.classList.toggle("dark");
-
-// REMOVE LAST MARKER
-document.getElementById("remove").onclick=()=>{
- if(markers.length){
-  map.removeLayer(markers.pop());
-  updateMeasure();
- }
-};
-
-// CLEAR ALL
-document.getElementById("clearAll").onclick=()=>{
- markers.forEach(m=>map.removeLayer(m));
- markers=[]; if(poly) map.removeLayer(poly);
- document.getElementById("speedBox").innerText="Distance: 0 "+unit;
-};
-
-// SAVE / LOAD
-document.getElementById("save").onclick=()=>{
- const data={unit,markers:markers.map(m=>m.getLatLng())};
- localStorage.setItem("navMapData",JSON.stringify(data));
-};
-document.getElementById("load").onclick=()=>{
- const data=JSON.parse(localStorage.getItem("navMapData"));
- if(!data) return;
- markers.forEach(m=>map.removeLayer(m));
- markers=[];
- data.markers.forEach(p=>addMarker(p));
- unit=data.unit;
- document.getElementById("unit").innerText=unit.toUpperCase();
-};
-
-// TOGGLE LABELS OVERLAY
-document.getElementById("labels").onclick=()=>{
- if(map.hasLayer(layers.satelliteLabels)){map.removeLayer(layers.satelliteLabels);labelsOn=false;}
- else if(map.hasLayer(layers.satellite)){layers.satelliteLabels.addTo(map);labelsOn=true;}
-};
+/* COMPASS */
+if(window.DeviceOrientationEvent){
+  window.addEventListener("deviceorientationabsolute",e=>{
+    if(e.alpha!=null){
+      document.getElementById("compass").style.transform=`rotate(${360-e.alpha}deg)`;
+    }
+  });
+}
 </script>
+
 </body>
 </html>
