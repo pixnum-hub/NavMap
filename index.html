@@ -13,11 +13,7 @@
 body{background:#eaeaea}
 body.dark{background:#111;color:#fff}
 
-/* MAP */
-#map{
-  width:100vw;
-  height:100vh;
-}
+#map{width:100vw;height:100vh}
 
 /* GLASS */
 .glass{
@@ -28,144 +24,59 @@ body.dark{background:#111;color:#fff}
 body.dark .glass{background:rgba(0,0,0,.45)}
 
 /* MAP LAYERS */
-.layers{
-  position:fixed;
-  top:12px;
-  left:12px;
-  padding:8px;
-  z-index:3000;
-}
-.layers div{
-  padding:6px 12px;
-  margin:4px 0;
-  border-radius:10px;
-  cursor:pointer;
-  text-align:center;
-}
+.layers{position:fixed;top:12px;left:12px;padding:8px;z-index:3000}
+.layers div{padding:6px 12px;margin:4px 0;border-radius:10px;cursor:pointer;text-align:center}
 
 /* DARK MODE */
 .dark-btn{
-  position:fixed;
-  top:12px;
-  right:12px;
-  width:42px;
-  height:42px;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:18px;
-  cursor:pointer;
-  z-index:3000;
+  position:fixed;top:12px;right:12px;width:42px;height:42px;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:18px;cursor:pointer;z-index:3000;
 }
 
 /* DISTANCE */
 #distanceBox{
-  position:fixed;
-  top:68px;
-  left:50%;
-  transform:translateX(-50%);
-  padding:8px 16px;
-  font-size:14px;
-  font-weight:bold;
-  z-index:5000;
-  pointer-events:none;
+  position:fixed;top:68px;left:50%;transform:translateX(-50%);
+  padding:8px 16px;font-size:14px;font-weight:bold;z-index:5000;
 }
 
-/* LOCATION DETAILS */
-#locationBox{
-  position:fixed;
-  bottom:190px;   /* ABOVE tools */
-  left:50%;
-  transform:translateX(-50%);
-  width:92%;
-  max-width:420px;
-  padding:10px;
-  font-size:13px;
-  z-index:3000;
+/* COLLAPSIBLE PANELS */
+.panel{position:fixed;left:50%;transform:translateX(-50%);width:92%;max-width:420px;z-index:4000}
+.panel-header{
+  text-align:center;font-weight:bold;padding:6px;cursor:pointer;
 }
+.panel-content{padding:10px}
+.collapsed .panel-content{display:none}
+
+/* LOCATION PANEL */
+#locationPanel{bottom:190px;font-size:13px}
+
+/* TOOLS PANEL */
+#toolsPanel{bottom:70px}
+#tools{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+#tools button{
+  padding:10px 14px;border:none;border-radius:20px;
+  cursor:pointer;font-size:14px;background:rgba(255,255,255,.85);
+}
+body.dark #tools button{background:rgba(0,0,0,.6);color:#fff}
 
 /* COMPASS */
 #compass{
-  position:fixed;
-  right:14px;
-  bottom:280px;
-  width:46px;
-  height:46px;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:18px;
-  z-index:3000;
-}
-
-/* TOOLBAR */
-#toolbar{
-  position:fixed;
-  bottom:70px;    /* lowest UI */
-  left:50%;
-  transform:translateX(-50%);
-  width:92%;
-  max-width:420px;
-  padding:10px;
-  z-index:4000;
-}
-
-#tools{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  justify-content:center;
-  margin-top:8px;
-}
-
-#tools button{
-  padding:10px 14px;
-  border:none;
-  border-radius:20px;
-  cursor:pointer;
-  font-size:14px;
-  background:rgba(255,255,255,.85);
-}
-body.dark #tools button{
-  background:rgba(0,0,0,.6);
-  color:#fff;
-}
-
-/* FAB */
-#fab{
-  position:fixed;
-  right:16px;
-  bottom:340px;
-  width:54px;
-  height:54px;
-  border-radius:50%;
-  background:#ff9800;
-  font-size:28px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-  z-index:4000;
+  position:fixed;right:14px;bottom:280px;width:46px;height:46px;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:18px;z-index:3000;
 }
 
 /* FOOTER */
 footer{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  text-align:center;
-  padding:8px 0;
-  font-size:12px;
-  z-index:2000;
+  position:fixed;bottom:0;width:100%;text-align:center;
+  padding:8px 0;font-size:12px;z-index:2000;
 }
 
 /* SMALL SCREEN SAFETY */
-@media (max-height:640px){
-  #locationBox{bottom:240px;font-size:12px}
+@media(max-height:640px){
+  #locationPanel{bottom:240px;font-size:12px}
   #compass{bottom:320px}
-  #fab{bottom:380px}
 }
 </style>
 </head>
@@ -186,29 +97,28 @@ footer{
   📏 Distance: <span id="distanceValue">0 km</span>
 </div>
 
-<div id="locationBox" class="glass">
-  <b>Location Details</b><br>
-  Lat: --<br>
-  Lng: --<br>
-  Accuracy: --<br>
-  Altitude: --<br>
-  Speed: --<br>
-  Updated: --
-</div>
-
-<div id="compass" class="glass">🧭</div>
-
-<div id="toolbar" class="glass">
-  <div style="text-align:center;font-weight:bold;">Tools</div>
-  <div id="tools">
-    <button onclick="addCenter()">➕ Add Marker</button>
-    <button onclick="toggleUnit()">📏 KM / MI</button>
-    <button onclick="removeLast()">❌ Remove</button>
-    <button onclick="clearAll()">🧹 Clear</button>
+<!-- LOCATION PANEL -->
+<div id="locationPanel" class="panel glass collapsed">
+  <div class="panel-header" onclick="togglePanel('locationPanel')">📍 Location Details</div>
+  <div class="panel-content" id="locationBox">
+    Lat: --<br>Lng: --<br>Accuracy: --<br>Altitude: --<br>Speed: --<br>Updated: --
   </div>
 </div>
 
-<div id="fab" onclick="addCenter()">➕</div>
+<!-- TOOLS PANEL -->
+<div id="toolsPanel" class="panel glass">
+  <div class="panel-header" onclick="togglePanel('toolsPanel')">🧰 Tools</div>
+  <div class="panel-content">
+    <div id="tools">
+      <button onclick="addCenter()">➕ Add Marker</button>
+      <button onclick="toggleUnit()">📏 KM / MI</button>
+      <button onclick="removeLast()">❌ Remove</button>
+      <button onclick="clearAll()">🧹 Clear</button>
+    </div>
+  </div>
+</div>
+
+<div id="compass" class="glass">🧭</div>
 
 <footer class="glass">© Mamik Roy 2025. All Rights Reserved.</footer>
 
@@ -217,49 +127,43 @@ footer{
 <script>
 /* MAP */
 const map=L.map("map").setView([20,0],2);
-
 const layers={
   std:L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}),
   ter:L.tileLayer("https://tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:17}),
   phy:L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",{maxZoom:19})
 };
-let active=layers.std; active.addTo(map);
-function switchLayer(k){map.removeLayer(active); active=layers[k]; active.addTo(map);}
+let active=layers.std;active.addTo(map);
+function switchLayer(k){map.removeLayer(active);active=layers[k];active.addTo(map);}
 
 /* DARK MODE */
 function toggleDark(){document.body.classList.toggle("dark");}
 
-/* MARKERS & DISTANCE */
-let markers=[], line=null, unit="km";
-
-function updateDistance(){
-  let total=0;
-  if(markers.length>1){
-    for(let i=0;i<markers.length-1;i++){
-      total+=markers[i].getLatLng()
-        .distanceTo(markers[i+1].getLatLng());
-    }
-  }
-  document.getElementById("distanceValue").innerText=
-    unit==="km"?(total/1000).toFixed(2)+" km":(total/1609.34).toFixed(2)+" mi";
-
-  if(line){map.removeLayer(line);line=null;}
-  if(markers.length>1){
-    line=L.polyline(markers.map(m=>m.getLatLng()),
-      {color:"orange",weight:4}).addTo(map);
-  }
+/* COLLAPSE LOGIC */
+function togglePanel(id){
+  document.getElementById(id).classList.toggle("collapsed");
 }
 
+/* MARKERS & DISTANCE */
+let markers=[],line=null,unit="km";
+function updateDistance(){
+  let d=0;
+  for(let i=0;i<markers.length-1;i++)
+    d+=markers[i].getLatLng().distanceTo(markers[i+1].getLatLng());
+  document.getElementById("distanceValue").innerText=
+    unit==="km"?(d/1000).toFixed(2)+" km":(d/1609.34).toFixed(2)+" mi";
+  if(line)map.removeLayer(line);
+  if(markers.length>1)
+    line=L.polyline(markers.map(m=>m.getLatLng()),{color:"orange"}).addTo(map);
+}
 function addMarker(ll){
   const m=L.marker(ll,{draggable:true}).addTo(map);
   m.on("drag",updateDistance);
-  markers.push(m);
-  updateDistance();
+  markers.push(m);updateDistance();
 }
 map.on("click",e=>addMarker(e.latlng));
 function addCenter(){addMarker(map.getCenter());}
 function removeLast(){if(markers.length){map.removeLayer(markers.pop());updateDistance();}}
-function clearAll(){markers.forEach(m=>map.removeLayer(m));markers=[];if(line){map.removeLayer(line);line=null;}updateDistance();}
+function clearAll(){markers.forEach(m=>map.removeLayer(m));markers=[];if(line)map.removeLayer(line);updateDistance();}
 function toggleUnit(){unit=unit==="km"?"mi":"km";updateDistance();}
 
 /* USER LOCATION */
@@ -268,8 +172,7 @@ const locBox=document.getElementById("locationBox");
 if(navigator.geolocation){
   navigator.geolocation.watchPosition(p=>{
     const c=p.coords;
-    locBox.innerHTML=`<b>Location Details</b><br>
-      Lat: ${c.latitude.toFixed(6)}<br>
+    locBox.innerHTML=`Lat: ${c.latitude.toFixed(6)}<br>
       Lng: ${c.longitude.toFixed(6)}<br>
       Accuracy: ${c.accuracy||"N/A"} m<br>
       Altitude: ${c.altitude||"N/A"}<br>
@@ -285,10 +188,8 @@ if(navigator.geolocation){
 /* COMPASS */
 if(window.DeviceOrientationEvent){
   window.addEventListener("deviceorientationabsolute",e=>{
-    if(e.alpha!=null){
-      document.getElementById("compass")
-        .style.transform=`rotate(${360-e.alpha}deg)`;
-    }
+    if(e.alpha!=null)
+      document.getElementById("compass").style.transform=`rotate(${360-e.alpha}deg)`;
   });
 }
 </script>
