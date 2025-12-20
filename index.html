@@ -3,18 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Navigation Map – Full Features</title>
+<title>Navigation Map</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
-body{background:#eaeaea;transition:.4s}
+
+body{
+ background:#eaeaea;
+ transition:.4s;
+}
 body.dark{background:#111;color:#fff}
 
-#map{height:100vh;width:100%}
+#map{
+ height:100vh;
+ width:100%;
+ padding-bottom:120px; /* 🔒 prevents footer/tools overlap */
+}
 
 .glass{
  background:rgba(255,255,255,.25);
@@ -22,26 +29,30 @@ body.dark{background:#111;color:#fff}
  border-radius:20px;
  z-index:2000;
 }
-
 body.dark .glass{background:rgba(0,0,0,.45)}
 
 .info{
- position:absolute;top:10px;left:50%;
+ position:absolute;
+ top:10px;
+ left:50%;
  transform:translateX(-50%);
  padding:8px 14px;
  font-size:13px;
 }
 
 #speedBox{
- position:absolute;top:50px;left:50%;
+ position:absolute;
+ top:46px;
+ left:50%;
  transform:translateX(-50%);
  padding:6px 12px;
  font-size:13px;
 }
 
+/* ===== CONTROLS BAR ===== */
 .controls{
  position:absolute;
- bottom:10px;
+ bottom:56px;               /* ✅ FIXED SPACING */
  left:50%;
  transform:translateX(-50%);
  display:flex;
@@ -50,7 +61,7 @@ body.dark .glass{background:rgba(0,0,0,.45)}
  max-width:95%;
  overflow-x:auto;
  scroll-behavior:smooth;
- z-index:2000;
+ z-index:3000;
 }
 
 .tool{
@@ -63,252 +74,173 @@ body.dark .glass{background:rgba(0,0,0,.45)}
  font-size:14px;
  cursor:pointer;
  flex-shrink:0;
- pointer-events:auto;
- background:rgba(255,255,255,0.25);
+ background:rgba(255,255,255,.25);
  backdrop-filter:blur(12px);
 }
-
-body.dark .tool{
- background:rgba(0,0,0,0.45);
-}
+body.dark .tool{background:rgba(0,0,0,.45)}
 
 #stylePanel{
  position:absolute;
- bottom:80px;left:50%;
+ bottom:120px;
+ left:50%;
  transform:translateX(-50%);
  padding:10px;
  display:none;
- z-index:3000;
- min-width:220px
+ z-index:4000;
+ min-width:220px;
 }
 #stylePanel div{
  padding:10px;
  margin:6px 0;
  border-radius:14px;
  text-align:center;
- cursor:pointer
+ cursor:pointer;
 }
 
 #compass{
  position:absolute;
- right:10px;bottom:100px;
- width:54px;height:54px;
+ right:10px;
+ bottom:130px;
+ width:54px;
+ height:54px;
  border-radius:50%;
  display:flex;
  align-items:center;
  justify-content:center;
  font-size:20px;
- z-index:3000
+ z-index:3000;
 }
 
 footer{
  position:absolute;
- bottom:0;width:100%;
+ bottom:0;
+ width:100%;
  text-align:center;
- padding:6px;font-size:12px
+ padding:8px 0;
+ font-size:12px;
+ pointer-events:none;
 }
 
-/* Mobile responsiveness */
-@media (max-width:600px){
- #info{bottom:140px;top:auto;}
- #speedBox{bottom:110px;top:auto;}
-}
-@media (max-width:400px){
- .tool{padding:6px 10px;font-size:12px;}
+/* ===== MOBILE SAFETY ===== */
+@media (max-width:480px){
+ .controls{bottom:64px}
+ .tool{padding:6px 10px;font-size:12px}
 }
 </style>
 </head>
+
 <body>
 
 <div id="map"></div>
 
-<div class="info glass" id="info">Touch screen to enable GPS</div>
-<div class="info glass" id="speedBox">Speed: 0 | ETA: --</div>
+<div class="info glass">Touch screen to enable GPS</div>
+<div class="info glass" id="speedBox">Speed: 0 km/h</div>
 
 <div id="compass" class="glass">
  <i class="fas fa-location-arrow"></i>
 </div>
 
 <div id="stylePanel" class="glass">
- <div data-style="standard">🗺️ Standard</div>
- <div data-style="satellite">🛰️ Satellite</div>
- <div data-style="terrain">⛰️ Terrain</div>
+ <div data-style="standard">🗺 Standard</div>
+ <div data-style="satellite">🛰 Satellite</div>
+ <div data-style="terrain">⛰ Terrain</div>
  <div data-style="physical">🌍 Physical</div>
 </div>
 
 <div class="controls glass">
-  <div class="tool" id="addMarker"><i class="fas fa-map-marker-alt"></i> Add Marker</div>
-  <div class="tool" id="mapStyle"><i class="fas fa-map"></i> Style</div>
-  <div class="tool" id="unit"><i class="fas fa-ruler"></i> KM</div>
-  <div class="tool" id="mode"><i class="fas fa-layer-group"></i> Measure</div>
-  <div class="tool" id="save"><i class="fas fa-save"></i> Save</div>
-  <div class="tool" id="load"><i class="fas fa-folder-open"></i> Load</div>
-  <div class="tool" id="remove"><i class="fas fa-trash-alt"></i> Remove</div>
-  <div class="tool" id="clearAll"><i class="fas fa-times-circle"></i> Clear All</div>
-  <div class="tool" id="dark"><i class="fas fa-moon"></i></div>
-  <div class="tool" id="toggleLabels"><i class="fas fa-tags"></i> Labels</div>
+ <div class="tool" id="addMarker"><i class="fa fa-map-marker-alt"></i>Add Marker</div>
+ <div class="tool" id="mapStyle"><i class="fa fa-layer-group"></i>Style</div>
+ <div class="tool" id="unit"><i class="fa fa-ruler"></i>KM</div>
+ <div class="tool" id="mode"><i class="fa fa-draw-polygon"></i>Measure</div>
+ <div class="tool" id="remove"><i class="fa fa-trash"></i>Remove</div>
+ <div class="tool" id="clearAll"><i class="fa fa-xmark"></i>Clear</div>
+ <div class="tool" id="dark"><i class="fa fa-moon"></i></div>
 </div>
 
 <footer class="glass">© Mamik Roy 2025. All Rights Reserved.</footer>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
-<script src="https://unpkg.com/leaflet-geometryutil"></script>
 
 <script>
-/* ================= MAP & LAYERS ================= */
-const map = L.map("map", { zoomControl: false }).setView([0,0], 2);
+/* ===== MAP & LAYERS ===== */
+const map = L.map("map").setView([0,0],2);
 
-const layers = {
- standard: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom:19, attribution:"© OSM" }),
- satellite: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom:19, attribution:"© Esri" }),
- satelliteLabels: L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", { maxZoom:19, attribution:"© Esri" }),
- terrain: L.tileLayer("https://tile.opentopomap.org/{z}/{x}/{y}.png", { maxZoom:17, attribution:"© OpenTopoMap" }),
- physical: L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", { maxZoom:19, attribution:"© OSM HOT" })
+const layers={
+ standard:L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}),
+ satellite:L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19}),
+ terrain:L.tileLayer("https://tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:17}),
+ physical:L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",{maxZoom:19})
 };
-
 layers.standard.addTo(map);
-let labelsOn = true;
 
-/* ================= GPS ================= */
-let userMarker = null, accuracyCircle = null, gpsStarted = false;
-let speedBox = document.getElementById("speedBox");
+/* ===== GPS ===== */
+navigator.geolocation.watchPosition(p=>{
+ const {latitude,longitude,speed}=p.coords;
+ if(!window.user){
+  window.user=L.circleMarker([latitude,longitude],{radius:7,color:"#007bff"}).addTo(map);
+  map.setView([latitude,longitude],17);
+ }else user.setLatLng([latitude,longitude]);
+ document.getElementById("speedBox").innerText=`Speed: ${(speed||0*3.6).toFixed(1)} km/h`;
+},{},{enableHighAccuracy:true});
 
-function startGPS(){
- if(gpsStarted) return;
- gpsStarted=true;
- navigator.geolocation.watchPosition(pos=>{
-  const {latitude:lat,longitude:lng,accuracy,speed}=pos.coords;
-  if(!userMarker){
-   userMarker = L.circleMarker([lat,lng], { radius:7, color:"#007bff", fillOpacity:1 }).addTo(map);
-   accuracyCircle = L.circle([lat,lng], { radius:accuracy, color:"#007bff", fillOpacity:0.15 }).addTo(map);
-   map.setView([lat,lng],17);
-  } else {
-   userMarker.setLatLng([lat,lng]);
-   accuracyCircle.setLatLng([lat,lng]).setRadius(accuracy);
-  }
-  const sp = speed ? speed*3.6 : 0;
-  speedBox.innerText=`Speed: ${sp.toFixed(1)} km/h`;
- }, ()=>{}, { enableHighAccuracy:true, maximumAge:0, timeout:15000 });
-}
-
-document.addEventListener("touchstart", startGPS, { once:true });
-document.addEventListener("click", startGPS, { once:true });
-
-/* ================= COMPASS ================= */
-if(window.DeviceOrientationEvent){
- window.addEventListener("deviceorientationabsolute", e=>{
-   if(e.alpha!=null){
-     document.getElementById("compass").style.transform = `rotate(${360-e.alpha}deg)`;
-   }
- });
-}
-
-/* ================= MARKERS & MEASURE ================= */
-let markers=[], poly=null, areaPoly=null;
-let unit="km", mode=0;
-
-// ===== MANUAL BUTTON =====
-document.getElementById("addMarker").onclick = () => {
-    const center = map.getCenter();
-    addMarker(center);
-};
-
-// ===== TAP TO ADD =====
-map.on('click', function(e){
-    addMarker(e.latlng);
+/* ===== COMPASS ===== */
+window.addEventListener("deviceorientationabsolute",e=>{
+ if(e.alpha!=null)
+  document.getElementById("compass").style.transform=`rotate(${360-e.alpha}deg)`;
 });
 
-// ===== ADD MARKER FUNCTION =====
+/* ===== MARKERS ===== */
+let markers=[],poly=null,mode=0,unit="km";
+
 function addMarker(latlng){
-    const m = L.marker(latlng, { draggable:true }).addTo(map);
-    m.on("drag", update);
-    markers.push(m);
-    update();
+ const m=L.marker(latlng,{draggable:true}).addTo(map);
+ m.on("drag",update);
+ markers.push(m);
+ update();
 }
+
+map.on("click",e=>addMarker(e.latlng));
+document.getElementById("addMarker").onclick=()=>addMarker(map.getCenter());
 
 function update(){
- const pts = markers.map(m=>m.getLatLng());
  if(poly) map.removeLayer(poly);
- if(areaPoly) map.removeLayer(areaPoly);
- if(mode===0 && pts.length===2) poly = L.polyline(pts,{color:"orange"}).addTo(map);
- if(mode===1 && pts.length>1) poly = L.polyline(pts,{color:"red"}).addTo(map);
- if(mode===2 && pts.length>2) areaPoly = L.polygon(pts,{color:"green"}).addTo(map);
+ if(markers.length>1)
+  poly=L.polyline(markers.map(m=>m.getLatLng()),{color:"orange"}).addTo(map);
 }
 
-/* Distance helper */
-function dist(a,b){
- const d = map.distance(a,b);
- return unit==="km" ? (d/1000).toFixed(2)+" km" : (d/1609.34).toFixed(2)+" mi";
-}
-
-/* ================= CONTROLS ================= */
-document.getElementById("unit").onclick=()=>{
- unit = unit==="km" ? "mi" : "km";
- document.getElementById("unit").innerHTML=`<i class="fas fa-ruler"></i>${unit.toUpperCase()}`;
- update();
-};
-document.getElementById("mode").onclick=()=>{ mode=(mode+1)%3; };
-document.getElementById("dark").onclick=()=>{ document.body.classList.toggle("dark"); };
-
+/* ===== CONTROLS ===== */
 document.getElementById("mapStyle").onclick=()=>{
- const p = document.getElementById("stylePanel");
- p.style.display = (p.style.display==="block") ? "none" : "block";
+ const p=document.getElementById("stylePanel");
+ p.style.display=p.style.display==="block"?"none":"block";
 };
 document.querySelectorAll("#stylePanel div").forEach(d=>{
  d.onclick=()=>{
-    Object.values(layers).forEach(l=>map.removeLayer(l));
-    if(d.dataset.style==="satellite"){
-      layers.satellite.addTo(map);
-      if(labelsOn) layers.satelliteLabels.addTo(map);
-    } else {
-      layers[d.dataset.style].addTo(map);
-    }
-    document.getElementById("stylePanel").style.display="none";
+  Object.values(layers).forEach(l=>map.removeLayer(l));
+  layers[d.dataset.style].addTo(map);
+  stylePanel.style.display="none";
  };
 });
 
-/* Toggle labels overlay */
-document.getElementById("toggleLabels").onclick=()=>{
- if(map.hasLayer(layers.satelliteLabels)){
-   map.removeLayer(layers.satelliteLabels);
-   labelsOn=false;
- } else {
-   if(map.hasLayer(layers.satellite)) layers.satelliteLabels.addTo(map);
-   labelsOn=true;
+document.getElementById("unit").onclick=()=>{
+ unit=unit==="km"?"mi":"km";
+ unitBtn.innerText=unit.toUpperCase();
+};
+
+document.getElementById("dark").onclick=()=>document.body.classList.toggle("dark");
+
+document.getElementById("remove").onclick=()=>{
+ if(markers.length){
+  map.removeLayer(markers.pop());
+  update();
  }
 };
 
-/* ================= SAVE / LOAD ================= */
-document.getElementById("save").onclick=()=>{
- const data={unit,mode,markers:markers.map(m=>m.getLatLng())};
- localStorage.setItem("navMapData",JSON.stringify(data));
-};
-document.getElementById("load").onclick=()=>{
- const data = JSON.parse(localStorage.getItem("navMapData"));
- if(!data) return;
- markers.forEach(m=>map.removeLayer(m));
- markers=[];
- unit=data.unit; mode=data.mode;
- data.markers.forEach(p=>addMarker(p));
-};
-
-/* ================= REMOVE MARKERS ================= */
-document.getElementById("remove").onclick=()=>{
- if(markers.length===0) return;
- const m = markers.pop();
- map.removeLayer(m);
- update();
-};
 document.getElementById("clearAll").onclick=()=>{
  markers.forEach(m=>map.removeLayer(m));
  markers=[];
  if(poly) map.removeLayer(poly);
- if(areaPoly) map.removeLayer(areaPoly);
 };
-
-/* ================= PWA ================= */
-if("serviceWorker" in navigator){ navigator.serviceWorker.register("service-worker.js"); }
 </script>
+
 </body>
 </html>
