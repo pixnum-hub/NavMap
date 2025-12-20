@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NavMap- Navigation Map</title>
+<title>Navigation Map – Full Features</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css">
@@ -208,12 +208,18 @@ if(window.DeviceOrientationEvent){
 let markers=[], poly=null, areaPoly=null;
 let unit="km", mode=0;
 
-// ===== MANUAL MARKER ADDITION =====
+// ===== MANUAL BUTTON =====
 document.getElementById("addMarker").onclick = () => {
-    const center = map.getCenter(); // Add marker at map center
+    const center = map.getCenter();
     addMarker(center);
 };
 
+// ===== TAP TO ADD =====
+map.on('click', function(e){
+    addMarker(e.latlng);
+});
+
+// ===== ADD MARKER FUNCTION =====
 function addMarker(latlng){
     const m = L.marker(latlng, { draggable:true }).addTo(map);
     m.on("drag", update);
