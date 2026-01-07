@@ -2,197 +2,251 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<title>Navigation Map</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NavMap - Navigation Map</title>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
-
-body{background:#eaeaea}
-body.dark{background:#111;color:#fff}
-
-#map{width:100vw;height:100vh}
-
-/* GLASS */
-.glass{
-  background:rgba(255,255,255,.32);
-  backdrop-filter:blur(14px);
-  border-radius:18px;
+body{
+  margin:0;
+  font-family:system-ui;
+  background:#0f172a;
+  color:#fff;
 }
-body.dark .glass{background:rgba(0,0,0,.45)}
-
-/* MAP LAYERS */
-.layers{position:fixed;top:12px;left:12px;padding:8px;z-index:3000}
-.layers div{padding:6px 12px;margin:4px 0;border-radius:10px;cursor:pointer;text-align:center}
-
-/* DARK MODE */
-.dark-btn{
-  position:fixed;top:12px;right:12px;width:42px;height:42px;
-  border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:18px;cursor:pointer;z-index:3000;
+#app{
+  max-width:480px;
+  margin:auto;
+  padding:10px;
 }
-
-/* DISTANCE */
-#distanceBox{
-  position:fixed;top:68px;left:50%;transform:translateX(-50%);
-  padding:8px 16px;font-size:14px;font-weight:bold;z-index:5000;
+#map{
+  height:55vh;
+  border-radius:20px;
 }
-
-/* COLLAPSIBLE PANELS */
-.panel{position:fixed;left:50%;transform:translateX(-50%);width:92%;max-width:420px;z-index:4000}
-.panel-header{
-  text-align:center;font-weight:bold;padding:6px;cursor:pointer;
+.panel{
+  backdrop-filter: blur(14px);
+  background: rgba(255,255,255,0.15);
+  border-radius:16px;
+  padding:10px;
+  margin-top:10px;
 }
-.panel-content{padding:10px}
-.collapsed .panel-content{display:none}
-
-/* LOCATION PANEL */
-#locationPanel{bottom:190px;font-size:13px}
-
-/* TOOLS PANEL */
-#toolsPanel{bottom:70px}
-#tools{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
-#tools button{
-  padding:10px 14px;border:none;border-radius:20px;
-  cursor:pointer;font-size:14px;background:rgba(255,255,255,.85);
+#themeToggle{
+  position:absolute;
+  top:10px;
+  right:10px;
+  width:40px;
+  height:40px;
+  border-radius:50%;
 }
-body.dark #tools button{background:rgba(0,0,0,.6);color:#fff}
-
-/* COMPASS */
-#compass{
-  position:fixed;right:14px;bottom:280px;width:46px;height:46px;
-  border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:18px;z-index:3000;
+#toolbar{
+  position:fixed;
+  bottom:80px;
+  left:50%;
+  transform:translateX(-50%);
+  width:92%;
+  max-width:420px;
+  z-index:4000;
 }
-
-/* FOOTER */
+#toolbar button{
+  width:48%;
+  margin:4px 1%;
+}
+#infoBox{
+  position:fixed;
+  bottom:200px;
+  left:50%;
+  transform:translateX(-50%);
+  width:92%;
+  max-width:420px;
+  font-size:13px;
+  z-index:3000;
+}
 footer{
-  position:fixed;bottom:0;width:100%;text-align:center;
-  padding:8px 0;font-size:12px;z-index:2000;
+  text-align:center;
+  font-size:12px;
+  margin-top:130px;
+  opacity:.6;
 }
-
-/* SMALL SCREEN SAFETY */
-@media(max-height:640px){
-  #locationPanel{bottom:240px;font-size:12px}
-  #compass{bottom:320px}
+.leaflet-control-layers{
+  max-height:70vh;
+  overflow-y:auto;
+  font-size:14px;
+}
+#offline{
+  position:fixed;
+  bottom:10px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#dc2626;
+  padding:6px 14px;
+  border-radius:20px;
+  display:none;
+  z-index:9999;
 }
 </style>
 </head>
 
 <body>
+<div id="app">
+
+<button id="themeToggle">🌙</button>
 
 <div id="map"></div>
 
-<div class="layers glass">
-  <div onclick="switchLayer('std')">Standard</div>
-  <div onclick="switchLayer('ter')">Terrain</div>
-  <div onclick="switchLayer('phy')">Physical</div>
+<div id="infoBox" class="panel">
+<div id="locInfo">Waiting for GPS…</div>
+<div id="distInfo">Distance: 0 km</div>
 </div>
 
-<div class="dark-btn glass" onclick="toggleDark()">🌙</div>
-
-<div id="distanceBox" class="glass">
-  📏 Distance: <span id="distanceValue">0 km</span>
+<div id="toolbar" class="panel">
+<button onclick="addMarker()">➕ Add Marker</button>
+<button onclick="removeMarker()">➖ Remove Marker</button>
+<button onclick="toggleUnit()">📏 KM / Mile</button>
 </div>
 
-<!-- LOCATION PANEL -->
-<div id="locationPanel" class="panel glass collapsed">
-  <div class="panel-header" onclick="togglePanel('locationPanel')">📍 Location Details</div>
-  <div class="panel-content" id="locationBox">
-    Lat: --<br>Lng: --<br>Accuracy: --<br>Altitude: --<br>Speed: --<br>Updated: --
-  </div>
+<footer>© Mamik Roy 2025. All Rights Reserved.</footer>
 </div>
 
-<!-- TOOLS PANEL -->
-<div id="toolsPanel" class="panel glass">
-  <div class="panel-header" onclick="togglePanel('toolsPanel')">🧰 Tools</div>
-  <div class="panel-content">
-    <div id="tools">
-      <button onclick="addCenter()">➕ Add Marker</button>
-      <button onclick="toggleUnit()">📏 KM / MI</button>
-      <button onclick="removeLast()">❌ Remove</button>
-      <button onclick="clearAll()">🧹 Clear</button>
-    </div>
-  </div>
-</div>
+<div id="offline">Offline Mode</div>
 
-<div id="compass" class="glass">🧭</div>
-
-<footer class="glass">© Mamik Roy 2025. All Rights Reserved.</footer>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
-/* MAP */
-const map=L.map("map").setView([20,0],2);
-const layers={
-  std:L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}),
-  ter:L.tileLayer("https://tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:17}),
-  phy:L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",{maxZoom:19})
+let map, userMarker, markers=[], line;
+let km=true;
+
+/* -------- MAP VARIATIONS (FIXED) -------- */
+
+const standardMap = L.tileLayer(
+ 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+ {maxZoom:19, subdomains:'abc'}
+);
+
+const satelliteMap = L.tileLayer(
+ 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+ {maxZoom:19}
+);
+
+const hybridMap = L.layerGroup([
+ L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  {maxZoom:19}
+ ),
+ L.tileLayer(
+  'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+  {maxZoom:19, subdomains:'abc'}
+ )
+]);
+
+const terrainMap = L.tileLayer(
+ 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+ {maxZoom:17, subdomains:'abc'}
+);
+
+const darkMap = L.tileLayer(
+ 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+ {maxZoom:19}
+);
+
+const minimalMap = L.tileLayer(
+ 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+ {maxZoom:19}
+);
+
+/* -------- MAP INIT -------- */
+
+map = L.map('map',{
+ center:[20,78],
+ zoom:5,
+ layers:[standardMap]
+});
+
+L.control.layers({
+ "🗺️ Standard":standardMap,
+ "🛰️ Satellite":satelliteMap,
+ "🧱 Hybrid":hybridMap,
+ "⛰️ Terrain":terrainMap,
+ "🌙 Dark":darkMap,
+ "🧾 Minimal":minimalMap
+},{},{collapsed:false}).addTo(map);
+
+map.on('baselayerchange',()=>{
+ setTimeout(()=>map.invalidateSize(),200);
+});
+
+/* -------- GEOLOCATION -------- */
+
+navigator.geolocation.watchPosition(p=>{
+ const {latitude,longitude,accuracy,altitude}=p.coords;
+ if(!userMarker){
+  userMarker=L.marker([latitude,longitude]).addTo(map);
+  map.setView([latitude,longitude],15);
+ }else userMarker.setLatLng([latitude,longitude]);
+
+ document.getElementById('locInfo').innerHTML=
+ `Lat: ${latitude.toFixed(5)}<br>
+  Lng: ${longitude.toFixed(5)}<br>
+  Accuracy: ${accuracy} m<br>
+  Altitude: ${altitude ?? 'N/A'}`;
+});
+
+/* -------- MARKERS & DISTANCE -------- */
+
+function addMarker(){
+ const c=map.getCenter();
+ const m=L.marker(c,{draggable:true}).addTo(map);
+ m.on('drag',calcDistance);
+ markers.push(m);
+ calcDistance();
+}
+
+function removeMarker(){
+ if(markers.length){
+  map.removeLayer(markers.pop());
+  calcDistance();
+ }
+}
+
+function calcDistance(){
+ if(line) map.removeLayer(line);
+ if(markers.length<2){
+  document.getElementById('distInfo').innerText='Distance: 0';
+  return;
+ }
+ const pts=markers.map(m=>m.getLatLng());
+ line=L.polyline(pts).addTo(map);
+ let d=0;
+ for(let i=1;i<pts.length;i++)
+  d+=pts[i-1].distanceTo(pts[i]);
+ document.getElementById('distInfo').innerText=
+ `Distance: ${(km?d/1000:d/1609).toFixed(2)} ${km?'km':'mile'}`;
+}
+
+function toggleUnit(){km=!km; calcDistance();}
+
+/* -------- THEME -------- */
+
+themeToggle.onclick=()=>{
+ document.body.classList.toggle('dark');
+ themeToggle.textContent =
+  themeToggle.textContent==='🌙'?'☀️':'🌙';
 };
-let active=layers.std;active.addTo(map);
-function switchLayer(k){map.removeLayer(active);active=layers[k];active.addTo(map);}
 
-/* DARK MODE */
-function toggleDark(){document.body.classList.toggle("dark");}
+/* -------- OFFLINE -------- */
 
-/* COLLAPSE LOGIC */
-function togglePanel(id){
-  document.getElementById(id).classList.toggle("collapsed");
+function net(){
+ offline.style.display=navigator.onLine?'none':'block';
 }
+window.addEventListener('online',net);
+window.addEventListener('offline',net);
+net();
 
-/* MARKERS & DISTANCE */
-let markers=[],line=null,unit="km";
-function updateDistance(){
-  let d=0;
-  for(let i=0;i<markers.length-1;i++)
-    d+=markers[i].getLatLng().distanceTo(markers[i+1].getLatLng());
-  document.getElementById("distanceValue").innerText=
-    unit==="km"?(d/1000).toFixed(2)+" km":(d/1609.34).toFixed(2)+" mi";
-  if(line)map.removeLayer(line);
-  if(markers.length>1)
-    line=L.polyline(markers.map(m=>m.getLatLng()),{color:"orange"}).addTo(map);
-}
-function addMarker(ll){
-  const m=L.marker(ll,{draggable:true}).addTo(map);
-  m.on("drag",updateDistance);
-  markers.push(m);updateDistance();
-}
-map.on("click",e=>addMarker(e.latlng));
-function addCenter(){addMarker(map.getCenter());}
-function removeLast(){if(markers.length){map.removeLayer(markers.pop());updateDistance();}}
-function clearAll(){markers.forEach(m=>map.removeLayer(m));markers=[];if(line)map.removeLayer(line);updateDistance();}
-function toggleUnit(){unit=unit==="km"?"mi":"km";updateDistance();}
+/* -------- PWA -------- */
 
-/* USER LOCATION */
-let userMarker=null;
-const locBox=document.getElementById("locationBox");
-if(navigator.geolocation){
-  navigator.geolocation.watchPosition(p=>{
-    const c=p.coords;
-    locBox.innerHTML=`Lat: ${c.latitude.toFixed(6)}<br>
-      Lng: ${c.longitude.toFixed(6)}<br>
-      Accuracy: ${c.accuracy||"N/A"} m<br>
-      Altitude: ${c.altitude||"N/A"}<br>
-      Speed: ${c.speed?(c.speed*3.6).toFixed(1)+" km/h":"N/A"}<br>
-      Updated: ${new Date().toLocaleTimeString()}`;
-    if(!userMarker){
-      userMarker=L.marker([c.latitude,c.longitude]).addTo(map);
-      map.setView([c.latitude,c.longitude],16);
-    }else userMarker.setLatLng([c.latitude,c.longitude]);
-  },()=>{}, {enableHighAccuracy:true});
-}
-
-/* COMPASS */
-if(window.DeviceOrientationEvent){
-  window.addEventListener("deviceorientationabsolute",e=>{
-    if(e.alpha!=null)
-      document.getElementById("compass").style.transform=`rotate(${360-e.alpha}deg)`;
-  });
+if('serviceWorker' in navigator){
+ navigator.serviceWorker.register('sw.js');
 }
 </script>
-
 </body>
 </html>
